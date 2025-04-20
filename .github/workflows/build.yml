@@ -1,0 +1,43 @@
+name: Build and Release PHP
+
+on:
+    release:
+        types: [published]
+    pull_request:
+
+jobs:
+    build:
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+                php_version: [8.4.6, 8.3.20, 8.2.28, 8.1.32, 8.0.30]
+                arch: [x64, arm64]
+
+        runs-on: ${{ matrix.os }}
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Build PHP
+              run: |
+                  if [[ "${{ runner.os }}" == "Linux" ]]; then
+                    bash build.sh linux ${{ matrix.php_version }} ${{ matrix.arch }}
+                  else
+                    bash build.sh macos ${{ matrix.php_version }} ${{ matrix.arch }}
+                  fi
+
+            - name: Archive built PHP
+              run: |
+                  tar -czf php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz -C $HOME php-${{ matrix.php_version }}
+
+            - name: Upload artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}
+                  path: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz
+
+            - name: Upload to Release
+              if: github.event_name == 'release'
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz
