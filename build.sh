@@ -57,8 +57,26 @@ tar -xzf php-${PHP_VERSION}.tar.gz
 cd php-${PHP_VERSION}
 
 ./configure --prefix=$HOME/php-${PHP_VERSION} \
-    --with-curl $CONFIGURE_OPENSSL --with-zlib --enable-mbstring \
-    $READLINE_CONFIG $PGSQL_CONFIG --with-pdo-mysql --with-mysqli --enable-fpm --with-zip $ICONV_CONFIG
+    $CONFIGURE_OPENSSL \
+    $ICONV_CONFIG \
+    $READLINE_CONFIG \
+    $PGSQL_CONFIG \
+    --with-curl \
+    --with-zlib \
+    --enable-mbstring \
+    --with-pdo-mysql \
+    --with-mysqli \
+    --enable-fpm \
+    --with-zip \
+    --enable-opcache \
+    --enable-bcmath \
+    --with-gd \
+    --enable-soap \
+    --enable-pcntl \
+    --enable-sockets \
+    --with-yaml \
+    --enable-apcu
+
 
 if [[ "$OS" == "linux" ]]; then
     make -j$(nproc)

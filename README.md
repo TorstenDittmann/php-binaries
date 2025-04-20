@@ -4,11 +4,25 @@ This repository builds and releases multiple PHP versions for Linux and macOS, f
 
 ## Download
 
-Go to [Releases](https://github.com/youruser/php-build/releases) and download the binary for your OS, architecture, and PHP version.
+Go to [Releases](https://github.com/TorstenDittmann/php-binaries/releases) and download the binary for your OS, architecture, and PHP version.
 
 ## Build Locally
 
 ```bash
-bash scripts/build-linux.sh 8.3.6
-bash scripts/build-macos.sh 8.2.18
+bash build.sh macos 8.4.6 arm64
 ```
+
+## Included Extensions
+
+The PHP binaries built with this script include the following extensions:
+
+- curl
+- OpenSSL
+- zlib
+- mbstring
+- readline
+- PostgreSQL (pgsql and pdo_pgsql)
+- MySQL (pdo_mysql and mysqli)
+- FPM (FastCGI Process Manager)
+- zip
+- iconv
