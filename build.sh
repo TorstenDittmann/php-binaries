@@ -35,7 +35,7 @@ elif [[ "$OS" == "macos" ]]; then
 
     OPENSSL_PREFIX="$(brew --prefix openssl@3)"
     ICONV_PREFIX="$(brew --prefix libiconv)"
-    POSTGRESQL_PREFIX="$(brew --prefix postgresql)"
+    POSTGRESQL_PREFIX="$(brew --prefix postgresql@17)"
     READLINE_PREFIX="$(brew --prefix readline)"
 
     export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${ICONV_PREFIX}/lib -L${POSTGRESQL_PREFIX}/lib -L${READLINE_PREFIX}/lib"
