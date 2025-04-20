@@ -18,7 +18,14 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-
+            
+            - name: Generate filename
+              id: filename
+              run: |
+                OS_LOWERCASE=$(echo ${{ runner.os }} | tr '[:upper:]' '[:lower:]')
+                FILENAME="php-${{ matrix.php_version }}-${OS_LOWERCASE}-${{ matrix.arch }}"
+                echo "filename=${FILENAME}" >> $GITHUB_OUTPUT
+              
             - name: Build PHP
               run: |
                   if [[ "${{ runner.os }}" == "Linux" ]]; then
@@ -29,16 +36,16 @@ jobs:
 
             - name: Archive built PHP
               run: |
-                  tar -czf php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz -C $HOME php-${{ matrix.php_version }}
+                  tar -czf ${{ steps.filename.outputs.filename }}.tar.gz -C $HOME php-${{ matrix.php_version }}
 
             - name: Upload artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}
-                  path: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz
+                  name: ${{ steps.filename.outputs.filename }}
+                  path: ${{ steps.filename.outputs.filename }}.tar.gz
 
             - name: Upload to Release
               if: github.event_name == 'release'
               uses: softprops/action-gh-release@v2.2.2
               with:
-                  files: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz
+                  files: ${{ steps.filename.outputs.filename }}.tar.gz
