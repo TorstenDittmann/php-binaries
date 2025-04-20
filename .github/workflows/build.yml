@@ -5,13 +5,23 @@ on:
         types: [published]
     pull_request:
 
+env:
+    PHP_VERSIONS: >
+      ["8.4.6", "8.3.20", "8.2.28", "8.1.32", "8.0.30"]
+    ARCHITECTURES: >
+      ["x64", "arm64"]
+    OS_RUNNERS: >
+      ["ubuntu-latest", "macos-latest"]
+    OS_DISPLAY_NAMES: >
+      ["Linux", "macOS"]
+
 jobs:
     build:
         strategy:
             matrix:
-                os: [ubuntu-latest, macos-latest]
-                php_version: [8.4.6, 8.3.20, 8.2.28, 8.1.32, 8.0.30]
-                arch: [x64, arm64]
+                os: ${{ fromJson(env.OS_RUNNERS) }}
+                php_version: ${{ fromJson(env.PHP_VERSIONS) }}
+                arch: ${{ fromJson(env.ARCHITECTURES) }}
 
         runs-on: ${{ matrix.os }}
 
@@ -41,3 +51,66 @@ jobs:
               uses: softprops/action-gh-release@v2
               with:
                   files: php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}.tar.gz
+    
+    create-json-manifest:
+        needs: build
+        if: github.event_name == 'release'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create PHP binaries manifest
+              run: |
+                echo '{"binaries": [' > manifest.json
+                
+                # Define variables to use in the loop
+                release_tag="${{ github.event.release.tag_name }}"
+                repo="${{ github.repository }}"
+                base_url="https://github.com/${repo}/releases/download/${release_tag}"
+                
+                # Convert OS names to display format
+                declare -A os_mapping=(["ubuntu-latest"]="Linux" ["macos-latest"]="macOS")
+                
+                # Use the same environment variables defined at workflow level
+                IFS=',' read -r -a php_versions <<< "${{ env.PHP_VERSIONS }}"
+                IFS=',' read -r -a arch_values <<< "${{ env.ARCHITECTURES }}"
+                
+                # Get the OS values from the build matrix
+                os_values=()
+                for os in ubuntu-latest macos-latest; do
+                  os_values+=("${os_mapping[$os]}")
+                done
+                
+                # Initialize counter for comma handling
+                counter=0
+                total=$((${#os_values[@]} * ${#php_versions[@]} * ${#arch_values[@]}))
+                
+                # Generate JSON entries
+                for os in "${os_values[@]}"; do
+                  for php_version in "${php_versions[@]}"; do
+                    for arch in "${arch_values[@]}"; do
+                      counter=$((counter+1))
+                      filename="php-${php_version}-${os}-${arch}.tar.gz"
+                      download_url="${base_url}/${filename}"
+                      
+                      echo "  {" >> manifest.json
+                      echo "    \"php_version\": \"${php_version}\"," >> manifest.json
+                      echo "    \"os\": \"${os}\"," >> manifest.json
+                      echo "    \"arch\": \"${arch}\"," >> manifest.json
+                      echo "    \"download_url\": \"${download_url}\"" >> manifest.json
+                      
+                      # Add comma except for the last entry
+                      if [ $counter -lt $total ]; then
+                        echo "  }," >> manifest.json
+                      else
+                        echo "  }" >> manifest.json
+                      fi
+                    done
+                  done
+                done
+                
+                echo ']}' >> manifest.json
+                cat manifest.json
+            
+            - name: Upload JSON manifest to Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  files: manifest.json
