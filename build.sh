@@ -23,7 +23,6 @@ if [[ "$OS" == "linux" ]]; then
     ICONV_CONFIG="--with-iconv"  # Use system iconv, no path needed
 
 elif [[ "$OS" == "macos" ]]; then
-    # Install Homebrew if not present
     if ! command -v brew &> /dev/null; then
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
@@ -32,10 +31,15 @@ elif [[ "$OS" == "macos" ]]; then
     brew install autoconf bison re2c libxml2 pkg-config openssl@3 \
         libpng jpeg libzip wget libiconv
 
-    export LDFLAGS="-L$(brew --prefix openssl@3)/lib -L$(brew --prefix libiconv)/lib"
-    export CPPFLAGS="-I$(brew --prefix openssl@3)/include -I$(brew --prefix libiconv)/include"
-    export PKG_CONFIG_PATH="$(brew --prefix openssl@3)/lib/pkgconfig"
-    ICONV_CONFIG="--with-iconv=$(brew --prefix libiconv)"
+    OPENSSL_PREFIX="$(brew --prefix openssl@3)"
+    ICONV_PREFIX="$(brew --prefix libiconv)"
+
+    export LDFLAGS="-L${OPENSSL_PREFIX}/lib -L${ICONV_PREFIX}/lib"
+    export CPPFLAGS="-I${OPENSSL_PREFIX}/include -I${ICONV_PREFIX}/include"
+    export PKG_CONFIG_PATH="${OPENSSL_PREFIX}/lib/pkgconfig"
+
+    CONFIGURE_OPENSSL="--with-openssl=${OPENSSL_PREFIX}"
+    ICONV_CONFIG="--with-iconv=${ICONV_PREFIX}"
 else
     echo "Unknown OS: $OS"
     exit 1
@@ -47,7 +51,7 @@ tar -xzf php-${PHP_VERSION}.tar.gz
 cd php-${PHP_VERSION}
 
 ./configure --prefix=$HOME/php-${PHP_VERSION} \
-    --with-curl --with-openssl --with-zlib --enable-mbstring \
+    --with-curl $CONFIGURE_OPENSSL --with-zlib --enable-mbstring \
     --with-pdo-mysql --with-mysqli --enable-fpm --with-zip $ICONV_CONFIG
 
 if [[ "$OS" == "linux" ]]; then
