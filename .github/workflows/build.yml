@@ -22,9 +22,9 @@ jobs:
             - name: Generate filename
               id: filename
               run: |
-                OS_LOWERCASE=$(echo ${{ runner.os }} | tr '[:upper:]' '[:lower:]')
-                FILENAME="php-${{ matrix.php_version }}-${OS_LOWERCASE}-${{ matrix.arch }}"
-                echo "filename=${FILENAME}" >> $GITHUB_OUTPUT
+                FILENAME="php-${{ matrix.php_version }}-${{ runner.os }}-${{ matrix.arch }}"
+                FILENAME_LOWERCASE=$(echo "$FILENAME" | tr '[:upper:]' '[:lower:]')
+                echo "filename=${FILENAME_LOWERCASE}" >> $GITHUB_OUTPUT
               
             - name: Build PHP
               run: |
