@@ -30,7 +30,7 @@ elif [[ "$OS" == "macos" ]]; then
     fi
 
     # Install dependencies
-    brew install --quiet autoconf bison re2c libxml2 pkg-config openssl \
+    brew install --quiet autoconf bison re2c libxml2 pkg-config openssl@3 \
         libpng jpeg libzip wget libiconv postgresql@17 readline
 
     OPENSSL_PREFIX="$(brew --prefix openssl@3)"
