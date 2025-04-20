@@ -52,7 +52,7 @@ cd php-${PHP_VERSION}
 
 ./configure --prefix=$HOME/php-${PHP_VERSION} \
     --with-curl $CONFIGURE_OPENSSL --with-zlib --enable-mbstring \
-    --with-pdo-mysql --with-mysqli --enable-fpm --with-zip $ICONV_CONFIG
+    --with-readline --with-pgsql --with-pdo-mysql --with-mysqli --enable-fpm --with-zip $ICONV_CONFIG
 
 if [[ "$OS" == "linux" ]]; then
     make -j$(nproc)
